@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "782360004864",
+    "firebase_url": "https://hivebot-251af-default-rtdb.firebaseio.com",
+    "project_id": "hivebot-251af",
+    "storage_bucket": "hivebot-251af.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:782360004864:android:290b2cfa80c33e11180be5",
+        "android_client_info": {
+          "package_name": "com.example.fire"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAR6tXgJjcAW-irG2VoZyGB1lhCsTTsfv4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

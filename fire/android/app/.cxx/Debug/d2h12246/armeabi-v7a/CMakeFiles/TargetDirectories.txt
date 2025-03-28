@@ -1,0 +1,2 @@
+C:/flutterApps/firehive/fire/android/app/.cxx/Debug/d2h12246/armeabi-v7a/CMakeFiles/edit_cache.dir
+C:/flutterApps/firehive/fire/android/app/.cxx/Debug/d2h12246/armeabi-v7a/CMakeFiles/rebuild_cache.dir

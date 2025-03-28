@@ -211,114 +211,96 @@ class _ContenedorGrandeScreenState extends State<ContenedorGrandeScreen> {
                 ),
               ),
               Expanded(
-                child: StreamBuilder(
+                child: StreamBuilder<List<BigContainer>>(
                   stream: _cloudFirestoreService.getBigContainers('contenedores'),
-                  builder: (context, AsyncSnapshot<List<BigContainer>> snapshot) {
-                    if (snapshot.hasError) {
-                      return Center(child: Text('Error: ${snapshot.error}', style: TextStyle(color: Colors.white)));
+                  builder: (context, firestoreSnapshot) {
+                    if (firestoreSnapshot.hasError) {
+                      return Center(child: Text('Error: ${firestoreSnapshot.error}', style: TextStyle(color: Colors.white)));
                     }
-                    if (snapshot.connectionState == ConnectionState.waiting) {
+                    if (firestoreSnapshot.connectionState == ConnectionState.waiting) {
                       return Center(child: CircularProgressIndicator(color: Colors.yellow));
                     }
-                    if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                    if (!firestoreSnapshot.hasData || firestoreSnapshot.data!.isEmpty) {
                       return Center(child: Text('No hay contenedores disponibles.', style: TextStyle(color: Colors.white)));
                     }
 
                     return ListView.builder(
-                      itemCount: snapshot.data!.length,
+                      itemCount: firestoreSnapshot.data!.length,
                       itemBuilder: (context, index) {
-                        final container = snapshot.data![index];
+                        final container = firestoreSnapshot.data![index];
 
-                        return GestureDetector(
-                          onTap: () {
-                            print('Contenedor seleccionado: ${container.tamano}');
-                          },
-                          child: Card(
-                            color: Colors.yellow[700],
-                            margin: const EdgeInsets.all(10),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: Padding(
-                              padding: const EdgeInsets.all(10.0),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text('Tamaño: ${container.tamano}', style: TextStyle(color: Colors.black)),
-                                  Text('Capacidad: ${container.capacidad}', style: TextStyle(color: Colors.black)),
-                                  Text('Forma: ${container.forma}', style: TextStyle(color: Colors.black)),
-                                  Text('Material: ${container.material}', style: TextStyle(color: Colors.black)),
-                                  Text('Carga de Dispositivo: ${container.cargaDispositivo}', style: TextStyle(color: Colors.black)),
-                                  Text('Consumo Energético: ${container.consumoEnergetico}', style: TextStyle(color: Colors.black)),
-                                  Text('Nivel de Alimento: ${container.nivelAlimento}', style: TextStyle(color: Colors.black)),
-                                  Text('Estado de Conexión: ${container.estadoConexion ? 'Activo' : 'Inactivo'}', style: TextStyle(color: Colors.black)),
-                                  Row(
+                        // Obtener datos en tiempo real de la base de datos en tiempo real
+                        return StreamBuilder<ContainerData>(
+                          stream: _cloudFirestoreService.getContainerData(container.id), // Obtiene datos dinámicos de Realtime Database
+                          builder: (context, realtimeSnapshot) {
+                            if (realtimeSnapshot.connectionState == ConnectionState.waiting) {
+                              return Center(child: CircularProgressIndicator(color: Colors.yellow));
+                            }
+                            if (realtimeSnapshot.hasError) {
+                              return Center(child: Text('Error: ${realtimeSnapshot.error}', style: TextStyle(color: Colors.white)));
+                            }
+
+                            // Combinar los datos de Firestore y Realtime Database
+                            final realtimeData = realtimeSnapshot.data;
+
+                            return GestureDetector(
+                              onTap: () {
+                                print('Contenedor seleccionado: ${container.tamano}');
+                              },
+                              child: Card(
+                                color: Colors.yellow[700],
+                                margin: const EdgeInsets.all(10),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(10.0),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      IconButton(
-                                        icon: Icon(Icons.edit, color: Colors.black),
-                                        onPressed: () {
-                                          _showForm(docId: container.id, container: container);
-                                        },
-                                      ),
-                                      IconButton(
-                                        icon: Icon(Icons.delete, color: Colors.red),
-                                        onPressed: () {
-                                          _deleteContainer(container.id);
-                                        },
+                                      Text('Tamaño: ${container.tamano}', style: TextStyle(color: Colors.black)),
+                                      Text('Capacidad: ${container.capacidad}', style: TextStyle(color: Colors.black)),
+                                      Text('Forma: ${container.forma}', style: TextStyle(color: Colors.black)),
+                                      Text('Material: ${container.material}', style: TextStyle(color: Colors.black)),
+                                      Text('Carga de Dispositivo: ${container.cargaDispositivo}', style: TextStyle(color: Colors.black)),
+                                      Text('Consumo Energético: ${container.consumoEnergetico}', style: TextStyle(color: Colors.black)),
+                                      Text('Nivel de Alimento: ${container.nivelAlimento}', style: TextStyle(color: Colors.black)),
+                                      Text('Estado de Conexión: ${container.estadoConexion ? 'Activo' : 'Inactivo'}', style: TextStyle(color: Colors.black)),
+                                      if (realtimeData != null)
+                                        Column(
+                                          children: [
+                                            Text('Distancia: ${realtimeData.distancia}', style: TextStyle(color: Colors.black)),
+                                            Text('Carga Dispositivo: ${realtimeData.cargaDispositivo}', style: TextStyle(color: Colors.black)),
+                                            Text('Estado Conexión: ${realtimeData.estadoConexion ? 'Activo' : 'Inactivo'}', style: TextStyle(color: Colors.black)),
+                                          ],
+                                        ),
+                                      Row(
+                                        children: [
+                                          IconButton(
+                                            icon: Icon(Icons.edit, color: Colors.black),
+                                            onPressed: () {
+                                              _showForm(docId: container.id, container: container);
+                                            },
+                                          ),
+                                          IconButton(
+                                            icon: Icon(Icons.delete, color: Colors.red),
+                                            onPressed: () {
+                                              _deleteContainer(container.id);
+                                            },
+                                          ),
+                                        ],
                                       ),
                                     ],
                                   ),
-                                ],
+                                ),
                               ),
-                            ),
-                          ),
+                            );
+                          },
                         );
                       },
                     );
                   },
                 ),
-              ),
-            ],
-          ),
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          _showForm();
-        },
-        backgroundColor: Colors.yellow,
-        child: Icon(Icons.add, color: Colors.black),
-      ),
-      bottomNavigationBar: BottomAppBar(
-        color: Colors.black,
-        child: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              IconButton(
-                icon: Icon(Icons.home, color: Colors.yellow),
-                onPressed: () {
-                  print("Inicio presionado");
-                },
-              ),
-              IconButton(
-                icon: Icon(Icons.person, color: Colors.yellow),
-                onPressed: () {
-                  print("Usuario presionado");
-                },
-              ),
-              IconButton(
-                icon: Icon(Icons.settings, color: Colors.yellow),
-                onPressed: () {
-                  print("Configuración presionada");
-                },
-              ),
-              IconButton(
-                icon: Icon(Icons.help, color: Colors.yellow),
-                onPressed: () {
-                  print("Ayuda presionada");
-                },
               ),
             ],
           ),

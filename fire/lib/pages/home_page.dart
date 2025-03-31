@@ -1,5 +1,9 @@
+import 'package:fire/pages/configuracion_screen.dart';
+import 'package:fire/pages/user_screen.dart'; // Importa la pantalla de perfil de usuario correctamente
+import 'package:fire/pages/ayuda_screen.dart'; // Importa la pantalla de ayuda
 import 'package:flutter/material.dart';
 import 'contenedor_grande_screen.dart';
+import 'configuracion_screen.dart'; // Importa la pantalla de configuración
 
 class HomePage extends StatelessWidget {
   HomePage({super.key});
@@ -12,35 +16,31 @@ class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // AppBar con fondo negro y texto amarillo
       appBar: AppBar(
         title: const Text(
           'HiveBot',
           style: TextStyle(
             fontWeight: FontWeight.bold,
             fontSize: 24,
-            color: Colors.yellow, // Amarillo en el texto
+            color: Colors.yellow,
           ),
         ),
-        backgroundColor: Colors.black, // Fondo negro para el AppBar
-        elevation: 0, // Sin sombra
+        backgroundColor: Colors.black,
+        elevation: 0,
         actions: [
-          // Icono de notificaciones con color amarillo
           IconButton(
             icon: const Icon(Icons.notifications, color: Colors.yellow),
             onPressed: () {
-              // Acción al presionar el icono de notificación
               print("Notificaciones presionadas");
             },
           ),
         ],
       ),
       body: Container(
-        color: Colors.black, // Fondo negro para el cuerpo
+        color: Colors.black,
         child: SafeArea(
           child: Column(
             children: [
-              // Título o descripción breve en la parte superior con texto amarillo
               Padding(
                 padding: const EdgeInsets.all(20.0),
                 child: Text(
@@ -48,18 +48,15 @@ class HomePage extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w600,
-                    color: Colors.yellow, // Texto amarillo
+                    color: Colors.yellow,
                   ),
                   textAlign: TextAlign.center,
                 ),
               ),
-
-              // Colocar el banner para "Contenedor Grande"
               Padding(
                 padding: const EdgeInsets.all(20.0),
                 child: Column(
                   children: [
-                    // Banner para "Contenedor Grande"
                     GestureDetector(
                       onTap: () {
                         Navigator.push(
@@ -74,7 +71,7 @@ class HomePage extends StatelessWidget {
                         width: double.infinity,
                         height: 150,
                         decoration: BoxDecoration(
-                          color: Colors.yellow[700], // Amarillo oscuro
+                          color: Colors.yellow[700],
                           borderRadius: BorderRadius.circular(10),
                         ),
                         child: Center(
@@ -88,51 +85,57 @@ class HomePage extends StatelessWidget {
                   ],
                 ),
               ),
-
-              // Espacio entre el banner y el footer
               Expanded(child: Container()),
             ],
           ),
         ),
       ),
-
-      // Footer con iconos reorganizados: Inicio, Usuario, Configuración, Ayuda
       bottomNavigationBar: BottomAppBar(
-        color: Colors.black, // Fondo negro para el footer
+        color: Colors.black,
         child: Padding(
           padding: const EdgeInsets.all(8.0),
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround, // Distribuye los íconos
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              // Icono de Inicio (ahora al principio)
               IconButton(
                 icon: Icon(Icons.home, color: Colors.yellow),
                 onPressed: () {
                   print("Inicio presionado");
                 },
               ),
-              
-              // Icono de Usuario
               IconButton(
                 icon: Icon(Icons.person, color: Colors.yellow),
                 onPressed: () {
-                  print("Usuario presionado");
+                  // Navegar a la pantalla de perfil de usuario
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => UsuarioScreen(), // Aquí se usa UsuarioScreen
+                    ),
+                  );
                 },
               ),
-
-              // Icono de Configuración
               IconButton(
                 icon: Icon(Icons.settings, color: Colors.yellow),
                 onPressed: () {
-                  print("Configuración presionada");
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => SettingsScreen(),
+                    ),
+                  );
                 },
               ),
-
-              // Icono de Ayuda (ahora al final)
               IconButton(
                 icon: Icon(Icons.help, color: Colors.yellow),
                 onPressed: () {
-                  print("Ayuda presionada");
+                  // Navegar a la pantalla de ayuda
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => AyudaScreen(), // Aquí se usa AyudaScreen
+                    ),
+                  );
                 },
               ),
             ],

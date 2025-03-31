@@ -1,7 +1,10 @@
-import 'package:fire/pages/home_page.dart';
-import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:geocoding/geocoding.dart';
+import 'home_page.dart';
 
 class InicioSesion extends StatefulWidget {
   const InicioSesion({super.key});
@@ -11,11 +14,28 @@ class InicioSesion extends StatefulWidget {
 }
 
 class _InicioSesionState extends State<InicioSesion> {
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+  // Función para obtener la ubicación
+  Future<String> _getLocation() async {
+    LocationPermission permission = await Geolocator.requestPermission();
+    if (permission == LocationPermission.denied || permission == LocationPermission.deniedForever) {
+      throw Exception("Permiso de ubicación denegado");
+    }
+
+    Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+    List<Placemark> placemarks = await placemarkFromCoordinates(position.latitude, position.longitude);
+    Placemark place = placemarks[0];
+
+    return place.locality ?? "Ciudad desconocida"; // Ciudad
+  }
+
   // Función para iniciar sesión con Google
   Future<void> _signInWithGoogle() async {
     try {
       final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
-      if (googleUser == null) return; // Si el usuario cancela el inicio de sesión
+      if (googleUser == null) return;
 
       final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
       final OAuthCredential credential = GoogleAuthProvider.credential(
@@ -23,10 +43,21 @@ class _InicioSesionState extends State<InicioSesion> {
         idToken: googleAuth.idToken,
       );
 
-      final UserCredential userCredential =
-          await FirebaseAuth.instance.signInWithCredential(credential);
+      final UserCredential userCredential = await _auth.signInWithCredential(credential);
+      final User? user = userCredential.user;
 
-      if (userCredential.user != null) {
+      if (user != null) {
+        // Obtener ubicación
+        String city = await _getLocation();
+
+        // Verificar si el usuario ya tiene datos en Firestore
+        DocumentSnapshot userDoc = await _firestore.collection('usuarios').doc(user.uid).get();
+
+        if (!userDoc.exists || !(userDoc.data() as Map<String, dynamic>).containsKey('ciudad')) {
+          await _saveUserData(user, city);
+        }
+
+        // Navegar a HomePage
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => HomePage()),
@@ -37,6 +68,18 @@ class _InicioSesionState extends State<InicioSesion> {
       ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error al iniciar sesión con Google: $e')));
     }
+  }
+
+  // Guardar los datos del usuario en Firestore
+  Future<void> _saveUserData(User user, String city) async {
+    DocumentReference userDoc = _firestore.collection('usuarios').doc(user.uid);
+    await userDoc.set({
+      'nombre': user.displayName ?? '',
+      'correo': user.email ?? '',
+      'ciudad': city,
+      'estado': true,
+      'contrasena': '',
+    });
   }
 
   @override

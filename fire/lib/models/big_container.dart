@@ -3,13 +3,14 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class BigContainer {
   final String id;
   final String tamano;
-  final int capacidad;  // Esto debe ser int
+  final int capacidad;
   final String forma;
   final bool estadoConexion;
   final String material;
-  final int cargaDispositivo;  // Esto debe ser int
-  final int consumoEnergetico;  // Esto debe ser int
-  final int nivelAlimento;  // Esto debe ser int
+  final int cargaDispositivo;
+  final int consumoEnergetico;
+  final int nivelAlimento;
+  final String sensorUltrasonico;
 
   BigContainer({
     required this.id,
@@ -21,36 +22,22 @@ class BigContainer {
     required this.cargaDispositivo,
     required this.consumoEnergetico,
     required this.nivelAlimento,
+    required this.sensorUltrasonico,
   });
 
-  // Convierte el objeto a un mapa para almacenar en Firestore
-  Map<String, dynamic> toMap() {
-    return {
-      'tamano': tamano,
-      'capacidad': capacidad,  // Mantén el tipo int
-      'forma': forma,
-      'estado_conexion': estadoConexion,
-      'material': material,
-      'carga_dispositivo': cargaDispositivo,  // Mantén el tipo int
-      'consumo_energetico': consumoEnergetico,  // Mantén el tipo int
-      'nivel_alimento': nivelAlimento,  // Mantén el tipo int
-    };
-  }
-
-  // Método fromDocumentSnapshot para crear un objeto BigContainer desde un mapa de Firestore
   factory BigContainer.fromDocumentSnapshot(DocumentSnapshot doc) {
-    final data = doc.data() as Map<String, dynamic>?;
-
+    final data = doc.data() as Map<String, dynamic>? ?? {};
     return BigContainer(
       id: doc.id,
-      tamano: data?['tamano'] ?? '',
-      capacidad: data?['capacidad'] ?? 0,  // Asegúrate de que Firestore almacene un int aquí
-      forma: data?['forma'] ?? '',
-      estadoConexion: data?['estado_conexion'] ?? false,
-      material: data?['material'] ?? '',
-      cargaDispositivo: data?['carga_dispositivo'] ?? 0,  // Asegúrate de que Firestore almacene un int aquí
-      consumoEnergetico: data?['consumo_energetico'] ?? 0,  // Asegúrate de que Firestore almacene un int aquí
-      nivelAlimento: data?['nivel_alimento'] ?? 0,  // Asegúrate de que Firestore almacene un int aquí
+      tamano: data['tamano'] ?? 'Desconocido',
+      capacidad: (data['capacidad'] ?? 0).toInt(),
+      forma: data['forma'] ?? 'N/A',
+      estadoConexion: data['estado_conexion'] ?? false,
+      material: data['material'] ?? 'N/A',
+      cargaDispositivo: (data['carga_dispositivo'] ?? 0).toInt(),
+      consumoEnergetico: (data['consumo_energetico'] ?? 0).toInt(),
+      nivelAlimento: (data['nivel_alimento'] ?? 0).toInt(),
+      sensorUltrasonico: data['sensor_ultrasonico'] ?? 'Desconocido',
     );
   }
 }

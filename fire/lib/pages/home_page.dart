@@ -1,9 +1,7 @@
-import 'package:fire/pages/configuracion_screen.dart';
 import 'package:fire/pages/user_screen.dart'; // Importa la pantalla de perfil de usuario correctamente
 import 'package:fire/pages/ayuda_screen.dart'; // Importa la pantalla de ayuda
 import 'package:flutter/material.dart';
-import 'contenedor_grande_screen.dart';
-import 'configuracion_screen.dart'; // Importa la pantalla de configuración
+import 'package:fire/pages/contenedor_grande_screen.dart';
 
 class HomePage extends StatelessWidget {
   HomePage({super.key});
@@ -44,8 +42,8 @@ class HomePage extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.all(20.0),
                 child: Text(
-                  '¡Bienvenido a HiveBot!',
-                  style: TextStyle(
+                  '¡Bienvenido a HiveBot!'
+                  ,style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w600,
                     color: Colors.yellow,
@@ -111,17 +109,6 @@ class HomePage extends StatelessWidget {
                     context,
                     MaterialPageRoute(
                       builder: (context) => UsuarioScreen(), // Aquí se usa UsuarioScreen
-                    ),
-                  );
-                },
-              ),
-              IconButton(
-                icon: Icon(Icons.settings, color: Colors.yellow),
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => SettingsScreen(),
                     ),
                   );
                 },

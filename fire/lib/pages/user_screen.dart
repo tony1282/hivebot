@@ -17,8 +17,12 @@ class _UsuarioScreenState extends State<UsuarioScreen> {
   String _nombre = '';
   String _ciudad = '';
   String _correo = '';
-  bool _notificaciones = false;
-  final TextEditingController _feedbackController = TextEditingController();
+  String _estado = '';
+  String _newPassword = '';
+
+  final TextEditingController _nombreController = TextEditingController();
+  final TextEditingController _ciudadController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
 
   @override
   void initState() {
@@ -35,8 +39,35 @@ class _UsuarioScreenState extends State<UsuarioScreen> {
           _nombre = userData['nombre'] ?? '';
           _ciudad = userData['ciudad'] ?? '';
           _correo = user.email ?? '';
-          _notificaciones = userData['notificaciones'] ?? false;
+          _estado = 'Estado: ${userData['estado'] ?? 'N/A'}';
+          _nombreController.text = _nombre;
+          _ciudadController.text = _ciudad;
         });
+      }
+    }
+  }
+
+  Future<void> _updateUserData() async {
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      try {
+        await _cloudFirestoreService.updateUserData(user.uid, {
+          'nombre': _nombreController.text,
+          'ciudad': _ciudadController.text,
+        });
+
+        if (_newPassword.isNotEmpty) {
+          await user.updatePassword(_newPassword);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Contraseña actualizada')),
+          );
+        }
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Datos actualizados')),
+        );
+      } catch (e) {
+        print("Error actualizando datos: $e");
       }
     }
   }
@@ -44,53 +75,27 @@ class _UsuarioScreenState extends State<UsuarioScreen> {
   Future<void> _deleteAccount() async {
     User? user = FirebaseAuth.instance.currentUser;
     if (user != null) {
+      await _cloudFirestoreService.updateUserData(user.uid, {'estado': false});
       await user.delete();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Cuenta eliminada exitosamente')),
-      );
       Navigator.pushReplacementNamed(context, '/login');
     }
   }
 
-  Future<void> _toggleNotifications(bool value) async {
-    setState(() {
-      _notificaciones = value;
-    });
-
-    User? user = FirebaseAuth.instance.currentUser;
-    if (user != null) {
-      await _cloudFirestoreService.updateUserData(user.uid, {
-        'notificaciones': _notificaciones,
-      });
-    }
-  }
-
-  Future<void> _sendFeedback() async {
-    String feedback = _feedbackController.text;
-    if (feedback.isNotEmpty) {
-      await FirebaseFirestore.instance.collection('feedback').add({
-        'userId': FirebaseAuth.instance.currentUser?.uid,
-        'feedback': feedback,
-        'timestamp': FieldValue.serverTimestamp(),
-      });
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Gracias por tu feedback')),
-      );
-      _feedbackController.clear();
-    }
-  }
-
-  Future<void> _showFeedbackDialog() async {
+  // Método para mostrar modal de edición
+  void _showEditModal(TextEditingController controller, String title, Function() onSave) {
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: Text('Envíanos tu Feedback', style: TextStyle(color: Colors.yellow)),
+          title: Text(title, style: TextStyle(color: Colors.yellow)),
           backgroundColor: Colors.black,
-          content: TextField(
-            controller: _feedbackController,
-            decoration: InputDecoration(labelText: 'Escribe tu feedback', labelStyle: TextStyle(color: Colors.yellow)),
+          content: TextFormField(
+            controller: controller,
+            decoration: InputDecoration(
+              labelStyle: TextStyle(color: Colors.yellow),
+              filled: true,
+              fillColor: Colors.white24,
+            ),
             style: TextStyle(color: Colors.white),
           ),
           actions: [
@@ -100,10 +105,10 @@ class _UsuarioScreenState extends State<UsuarioScreen> {
             ),
             ElevatedButton(
               onPressed: () {
-                _sendFeedback();
+                onSave();
                 Navigator.pop(context);
               },
-              child: Text('Enviar Feedback', style: TextStyle(color: Colors.black)),
+              child: Text('Actualizar', style: TextStyle(color: Colors.black)),
               style: ElevatedButton.styleFrom(backgroundColor: Colors.yellow),
             ),
           ],
@@ -118,11 +123,7 @@ class _UsuarioScreenState extends State<UsuarioScreen> {
       appBar: AppBar(
         title: Text(
           'Perfil de Usuario',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 24,
-            color: Colors.yellow,
-          ),
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24, color: Colors.yellow),
         ),
         backgroundColor: Colors.black,
         elevation: 0,
@@ -130,47 +131,78 @@ class _UsuarioScreenState extends State<UsuarioScreen> {
       body: Container(
         color: Colors.black,
         child: SafeArea(
-          child: ListView(
+          child: Padding(
             padding: EdgeInsets.all(20.0),
-            children: [
-              Column(
-                children: [
-                  CircleAvatar(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: CircleAvatar(
                     radius: 40,
                     backgroundImage: NetworkImage(FirebaseAuth.instance.currentUser?.photoURL ?? ''),
                   ),
-                  SizedBox(height: 10),
-                  Text(_nombre, style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600, color: Colors.yellow)),
-                  SizedBox(height: 10),
-                  Text(_correo, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w400, color: Colors.white)),
-                  SizedBox(height: 10),
-                  Text(_ciudad, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w400, color: Colors.white)),
-                  SizedBox(height: 20),
+                ),
+                SizedBox(height: 20),
 
-                  SwitchListTile(
-                    title: Text('Recibir notificaciones', style: TextStyle(color: Colors.yellow)),
-                    value: _notificaciones,
-                    onChanged: _toggleNotifications,
-                  ),
-                  SizedBox(height: 10),
+                // FILAS CON DATOS E ICONOS
+                _buildDataRow('Nombre', _nombre, Icons.edit, () {
+                  _showEditModal(_nombreController, 'Editar Nombre', () {
+                    _updateUserData();
+                  });
+                }),
 
-                  ElevatedButton(
-                    onPressed: _showFeedbackDialog,
-                    child: Text('Enviar Feedback'),
-                    style: ElevatedButton.styleFrom(backgroundColor: Colors.yellow),
-                  ),
-                  SizedBox(height: 10),
+                _buildDataRow('Ciudad', _ciudad, Icons.edit_location, () {
+                  _showEditModal(_ciudadController, 'Editar Ciudad', () {
+                    _updateUserData();
+                  });
+                }),
 
-                  ElevatedButton(
+                _buildDataRow('Correo', _correo, Icons.email, () {}), // Sin edición
+
+                _buildDataRow('Estado', _estado, Icons.info, () {}), // Sin edición
+
+                _buildDataRow('Contraseña', '********', Icons.lock, () {
+                  _showEditModal(_passwordController, 'Editar Contraseña', () {
+                    _newPassword = _passwordController.text;
+                    _updateUserData();
+                  });
+                }),
+
+                // BOTÓN PARA ELIMINAR CUENTA
+                Center(
+                  child: ElevatedButton.icon(
                     onPressed: _deleteAccount,
-                    child: Text('Eliminar Cuenta'),
+                    icon: Icon(Icons.delete, color: Colors.black),
+                    label: Text('Eliminar cuenta', style: TextStyle(color: Colors.black)),
                     style: ElevatedButton.styleFrom(backgroundColor: Colors.yellow),
                   ),
-                ],
-              ),
-            ],
+                ),
+              ],
+            ),
           ),
         ),
+      ),
+    );
+  }
+
+  // Método para construir cada fila con datos e icono de edición
+  Widget _buildDataRow(String label, String value, IconData icon, VoidCallback onTap) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              '$label: $value',
+              style: TextStyle(fontSize: 16, color: Colors.white),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          IconButton(
+            icon: Icon(icon, color: Colors.yellow),
+            onPressed: onTap,
+          ),
+        ],
       ),
     );
   }

@@ -1,0 +1,2 @@
+C:/hivebot/hivebot/fire/android/app/.cxx/Debug/6i1w511j/armeabi-v7a/CMakeFiles/edit_cache.dir
+C:/hivebot/hivebot/fire/android/app/.cxx/Debug/6i1w511j/armeabi-v7a/CMakeFiles/rebuild_cache.dir

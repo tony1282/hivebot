@@ -6,9 +6,9 @@ import 'package:fire/pages/contenedor_grande_screen.dart';
 class HomePage extends StatelessWidget {
   HomePage({super.key});
 
-  // Solo un contenedor
+  // Solo un contenedor con un containerId específico
   List contenedor = [
-    ['Contenedores', Icons.view_comfy, ContenedorGrandeScreen()],
+    ['Contenedores', Icons.view_comfy, ContenedorGrandeScreen()], // Asegúrate de pasar un containerId válido
   ];
 
   @override
@@ -39,11 +39,12 @@ class HomePage extends StatelessWidget {
         child: SafeArea(
           child: Column(
             children: [
+              const SizedBox(height: 50), // Espacio arriba del mensaje de bienvenida
               Padding(
-                padding: const EdgeInsets.all(20.0),
+                padding: const EdgeInsets.symmetric(horizontal: 20.0),
                 child: Text(
-                  '¡Bienvenido a HiveBot!'
-                  ,style: TextStyle(
+                  '¡Bienvenido a HiveBot!',
+                  style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w600,
                     color: Colors.yellow,
@@ -51,8 +52,9 @@ class HomePage extends StatelessWidget {
                   textAlign: TextAlign.center,
                 ),
               ),
+              const SizedBox(height: 40), // Espacio entre el texto y el contenedor
               Padding(
-                padding: const EdgeInsets.all(20.0),
+                padding: const EdgeInsets.symmetric(horizontal: 20.0),
                 child: Column(
                   children: [
                     GestureDetector(
@@ -108,7 +110,7 @@ class HomePage extends StatelessWidget {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => UsuarioScreen(), // Aquí se usa UsuarioScreen
+                      builder: (context) => UsuarioScreen(),
                     ),
                   );
                 },
@@ -120,7 +122,7 @@ class HomePage extends StatelessWidget {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => AyudaScreen(), // Aquí se usa AyudaScreen
+                      builder: (context) => AyudaScreen(),
                     ),
                   );
                 },

@@ -1,12 +1,12 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:fire/models/big_container.dart';
-import 'package:fire/models/container_data.dart'; // Asegúrate de que esta línea esté presente
+import 'package:fire/models/container_data.dart';
 
 class CloudFirestoreService {
   static final CloudFirestoreService _instance = CloudFirestoreService._internal();
 
-  final FirebaseFirestore _cloudFirestore = FirebaseFirestore.instance; // Inicialización de Firestore
+  final FirebaseFirestore _cloudFirestore = FirebaseFirestore.instance;
   final FirebaseDatabase _realTimeDatabase = FirebaseDatabase.instance;
 
   factory CloudFirestoreService() {
@@ -15,7 +15,7 @@ class CloudFirestoreService {
 
   CloudFirestoreService._internal();
 
-  // Obtiene una lista de BigContainers desde Firestore en tiempo real
+  // Stream de contenedores grandes desde Firestore
   Stream<List<BigContainer>> getBigContainers(String collection) {
     return _cloudFirestore.collection(collection).snapshots().map((snapshot) {
       return snapshot.docs.map((doc) {
@@ -29,7 +29,7 @@ class CloudFirestoreService {
     });
   }
 
-  // Obtiene datos en tiempo real desde la Realtime Database
+  // Obtener datos de contenedor desde Realtime Database
   Stream<ContainerData?> getContainerData(String containerId) {
     return _realTimeDatabase.ref().child('contenedores/$containerId').onValue.map((event) {
       final data = event.snapshot.value;
@@ -38,13 +38,15 @@ class CloudFirestoreService {
           distancia: data['distancia'] ?? 0,
           cargaDispositivo: data['carga_dispositivo'] ?? 0,
           estadoConexion: data['estado_conexion'] ?? false,
+          nivelGrande: data['nivel_grande'] ?? 0.0,
+          nivelPequeno: data['nivel_pequeno'] ?? 0.0,
         );
       }
       return null;
     });
   }
 
-  // Obtiene los datos del usuario desde Firestore
+  // Obtener datos de usuario desde Firestore
   Future<Map<String, dynamic>?> getUserData(String userId) async {
     try {
       DocumentSnapshot doc = await _cloudFirestore.collection('usuarios').doc(userId).get();
@@ -57,7 +59,7 @@ class CloudFirestoreService {
     return null;
   }
 
-  // Actualiza los datos del usuario en Firestore
+  // Actualizar datos del usuario
   Future<void> updateUserData(String userId, Map<String, dynamic> data) async {
     try {
       await _cloudFirestore.collection('usuarios').doc(userId).update(data);
@@ -66,16 +68,18 @@ class CloudFirestoreService {
     }
   }
 
-  // Inserta un nuevo contenedor en Firestore
-  Future<void> insertContainer(String collection, Map<String, dynamic> data) async {
+  // ✅ Insertar contenedor en Firestore (devuelve el DocumentReference)
+  Future<DocumentReference> insertContainer(String collection, Map<String, dynamic> data) async {
     try {
-      await _cloudFirestore.collection(collection).add(data);
+      final docRef = await _cloudFirestore.collection(collection).add(data);
+      return docRef;
     } catch (e) {
       print("Error insertando contenedor: $e");
+      rethrow;
     }
   }
 
-  // Elimina un contenedor de Firestore
+  // Eliminar contenedor de Firestore
   Future<void> deleteContainer(String collection, String docId) async {
     try {
       await _cloudFirestore.collection(collection).doc(docId).delete();
@@ -84,7 +88,7 @@ class CloudFirestoreService {
     }
   }
 
-  // Actualiza un contenedor en Firestore
+  // Actualizar contenedor en Firestore
   Future<void> updateContainer(String collection, String docId, Map<String, dynamic> data) async {
     try {
       await _cloudFirestore.collection(collection).doc(docId).update(data);
@@ -93,7 +97,7 @@ class CloudFirestoreService {
     }
   }
 
-  // Inserta datos en tiempo real para un contenedor específico
+  // Insertar datos en Realtime Database
   Future<void> insertContainerData(String containerId, Map<String, dynamic> data) async {
     try {
       await _realTimeDatabase.ref().child('contenedores/$containerId').set(data);
@@ -102,7 +106,7 @@ class CloudFirestoreService {
     }
   }
 
-  // Actualiza datos en tiempo real para un contenedor específico
+  // Actualizar datos en Realtime Database
   Future<void> updateContainerData(String containerId, Map<String, dynamic> data) async {
     try {
       await _realTimeDatabase.ref().child('contenedores/$containerId').update(data);
@@ -111,12 +115,39 @@ class CloudFirestoreService {
     }
   }
 
-  // Elimina datos en tiempo real para un contenedor específico
+  // Eliminar datos en Realtime Database
   Future<void> deleteContainerData(String containerId) async {
     try {
       await _realTimeDatabase.ref().child('contenedores/$containerId').remove();
     } catch (e) {
       print("Error eliminando datos en tiempo real: $e");
     }
+  }
+
+  // Sincronizar datos entre Realtime Database y Firestore (sincroniza la distancia)
+  Future<void> syncRealtimeDataToFirestore(String containerId) async {
+    try {
+      // Obtener los datos de Realtime Database
+      final containerData = await getContainerData(containerId).first;
+      if (containerData != null) {
+        // Sincronizamos la distancia con Firestore
+        await updateContainer(containerId, containerId, {
+          'distancia_sensor': containerData.distancia,
+        });
+      }
+    } catch (e) {
+      print("Error sincronizando datos de Realtime Database a Firestore: $e");
+    }
+  }
+
+  // Escuchar cambios en la distancia del sensor en Realtime Database
+  void listenForSensorChanges(String containerId, Function(double) onDistanceChanged) {
+    _realTimeDatabase.ref().child('contenedores/$containerId').onValue.listen((event) {
+      final data = event.snapshot.value;
+      if (data is Map && data.containsKey('distancia')) {
+        final nuevaDistancia = (data['distancia'] ?? 0).toDouble();
+        onDistanceChanged(nuevaDistancia);
+      }
+    });
   }
 }

@@ -9,7 +9,9 @@ class BigContainer {
   final String material;
   final int cargaDispositivo;
   final int consumoEnergetico;
-  final int nivelAlimento;
+  final double nivelAlimento;
+  final double nivelGrande;
+  final double nivelPequeno;
   final String sensorUltrasonico;
 
   BigContainer({
@@ -22,21 +24,25 @@ class BigContainer {
     required this.cargaDispositivo,
     required this.consumoEnergetico,
     required this.nivelAlimento,
+    required this.nivelGrande,
+    required this.nivelPequeno,
     required this.sensorUltrasonico,
   });
 
   factory BigContainer.fromDocumentSnapshot(DocumentSnapshot doc) {
-    final data = doc.data() as Map<String, dynamic>? ?? {};
+    final data = doc.data() as Map<String, dynamic>;
     return BigContainer(
       id: doc.id,
       tamano: data['tamano'] ?? 'Desconocido',
-      capacidad: (data['capacidad'] ?? 0).toInt(),
+      capacidad: data['capacidad'] ?? 0,
       forma: data['forma'] ?? 'N/A',
       estadoConexion: data['estado_conexion'] ?? false,
       material: data['material'] ?? 'N/A',
-      cargaDispositivo: (data['carga_dispositivo'] ?? 0).toInt(),
-      consumoEnergetico: (data['consumo_energetico'] ?? 0).toInt(),
-      nivelAlimento: (data['nivel_alimento'] ?? 0).toInt(),
+      cargaDispositivo: data['carga_dispositivo'] ?? 0,
+      consumoEnergetico: data['consumo_energetico'] ?? 0,
+      nivelAlimento: data['nivel_alimento']?.toDouble() ?? 0.0,
+      nivelGrande: data['nivel_grande']?.toDouble() ?? 0.0,
+      nivelPequeno: data['nivel_pequeno']?.toDouble() ?? 0.0,
       sensorUltrasonico: data['sensor_ultrasonico'] ?? 'Desconocido',
     );
   }

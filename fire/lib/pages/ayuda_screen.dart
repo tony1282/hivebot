@@ -11,18 +11,19 @@ class AyudaScreen extends StatelessWidget {
         return AlertDialog(
           title: Text(
             'Contacto de Soporte',
-            style: TextStyle(fontWeight: FontWeight.bold),
+            style: TextStyle(fontWeight: FontWeight.bold, color: Colors.yellow),
           ),
+          backgroundColor: Colors.black,
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               ListTile(
-                leading: Icon(Icons.email, color: Colors.black),
-                title: Text('soporte@miapp.com'),
+                leading: Icon(Icons.email, color: Colors.yellow),
+                title: Text('hivebot@gmail.com', style: TextStyle(color: Colors.white)),
               ),
               ListTile(
-                leading: Icon(Icons.phone, color: Colors.black),
-                title: Text('+1 234 567 8900'), // Número de teléfono de soporte
+                leading: Icon(Icons.phone, color: Colors.yellow),
+                title: Text('2471182272', style: TextStyle(color: Colors.white)),
               ),
             ],
           ),
@@ -31,7 +32,10 @@ class AyudaScreen extends StatelessWidget {
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              child: Text('Cerrar'),
+              child: Text(
+                'Cerrar',
+                style: TextStyle(color: Colors.yellow),
+              ),
             ),
           ],
         );

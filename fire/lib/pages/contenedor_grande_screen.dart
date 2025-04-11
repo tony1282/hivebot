@@ -39,9 +39,9 @@ class _ContenedorGrandeScreenState extends State<ContenedorGrandeScreen> {
       if (_isLoading) {
         // Si los datos no han llegado en 20 segundos, asignamos los niveles a 0.0
         setState(() {
-          nivelGrande = 14.0;
-          nivelPequeno = 7.0;
-          _selectedNivelAlimento = 13.0;
+          nivelGrande = 0.0;
+          nivelPequeno = 0.0;
+          _selectedNivelAlimento = 17.0;
           _isLoading = false;
         });
       }
@@ -185,7 +185,7 @@ class _ContenedorGrandeScreenState extends State<ContenedorGrandeScreen> {
                   StatefulBuilder(
                     builder: (context, setStateDialog) {
                       return DropdownButton<double>(
-                        value: _selectedNivelAlimento ?? 0.0,
+                        value: _selectedNivelAlimento ?? 17.0,
                         hint: Text(
                           "Selecciona el nivel de alimento", 
                           style: TextStyle(color: Colors.yellow[700], fontSize: 16)
@@ -200,34 +200,33 @@ class _ContenedorGrandeScreenState extends State<ContenedorGrandeScreen> {
                           });
                         },
                         items: [
-                          // Se agrega siempre la opción 0.0 con letras en amarillo
-                          DropdownMenuItem<double>(
-                            value: 0.0,
-                            child: Text(
-                              "Nivel: 0.0",
-                              style: TextStyle(color: Colors.yellow, fontSize: 16),
-                            ),
-                          ),
-                          if (nivelGrande != null && nivelGrande! > 0.0)
-                            DropdownMenuItem<double>(
-                              value: nivelGrande!,
-                              child: Text(
-                                "Nivel: ${nivelGrande!.toStringAsFixed(2)}",
-                                style: TextStyle(color: Colors.yellow, fontSize: 16),
-                              ),
-                            ),
-                          // Se agrega la opción de nivelPequeno sólo si es distinto de nivelGrande
-                          if (nivelPequeno != null &&
-                              nivelPequeno! > 0.0 &&
-                              (nivelGrande == null || nivelPequeno != nivelGrande))
-                            DropdownMenuItem<double>(
-                              value: nivelPequeno!,
-                              child: Text(
-                                "Nivel: ${nivelPequeno!.toStringAsFixed(2)}",
-                                style: TextStyle(color: Colors.yellow, fontSize: 16),
-                              ),
-                            ),
-                        ],
+  DropdownMenuItem<double>(
+    value: 17.0,
+    child: Text(
+      "Nivel: 17.0",
+      style: TextStyle(color: Colors.yellow, fontSize: 16),
+    ),
+  ),
+  if (nivelGrande != null && nivelGrande! > 0.0)
+    DropdownMenuItem<double>(
+      value: nivelGrande!,
+      child: Text(
+        "Nivel: ${nivelGrande!.toStringAsFixed(2)}",
+        style: TextStyle(color: Colors.yellow, fontSize: 16),
+      ),
+    ),
+  if (nivelPequeno != null &&
+      nivelPequeno! > 0.0 &&
+      (nivelGrande == null || nivelPequeno != nivelGrande))
+    DropdownMenuItem<double>(
+      value: nivelPequeno!,
+      child: Text(
+        "Nivel: ${nivelPequeno!.toStringAsFixed(2)}",
+        style: TextStyle(color: Colors.yellow, fontSize: 16),
+      ),
+    ),
+],
+
                         disabledHint: Text(
                           "Esperando datos", 
                           style: TextStyle(color: Colors.yellow[700], fontSize: 16)

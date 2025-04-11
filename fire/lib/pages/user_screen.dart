@@ -17,7 +17,7 @@ class _UsuarioScreenState extends State<UsuarioScreen> {
   String _ciudad = '';
   String _correo = '';
   String _newPassword = '';
-  
+
   final TextEditingController _nombreController = TextEditingController();
   final TextEditingController _ciudadController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
@@ -28,7 +28,6 @@ class _UsuarioScreenState extends State<UsuarioScreen> {
     _loadUserData();
   }
 
-  // Método para cargar los datos del usuario desde Firestore
   Future<void> _loadUserData() async {
     User? user = FirebaseAuth.instance.currentUser;
     if (user != null) {
@@ -45,7 +44,6 @@ class _UsuarioScreenState extends State<UsuarioScreen> {
     }
   }
 
-  // Método para actualizar los datos del usuario en Firestore y refrescar el estado local
   Future<void> _updateUserData() async {
     User? user = FirebaseAuth.instance.currentUser;
     if (user != null) {
@@ -76,15 +74,11 @@ class _UsuarioScreenState extends State<UsuarioScreen> {
     }
   }
 
-  // Método para desactivar la cuenta del usuario
   Future<void> _deactivateAccount() async {
     User? user = FirebaseAuth.instance.currentUser;
     if (user != null) {
       try {
-        // Solicitar re-autenticación antes de desactivar la cuenta
         await _reauthenticateUser(user);
-
-        // Si la re-autenticación es exitosa, desactivamos la cuenta
         await _cloudFirestoreService.updateUserData(user.uid, {'estado': false});
         await user.delete();
         Navigator.pushReplacementNamed(context, '/login');
@@ -96,22 +90,23 @@ class _UsuarioScreenState extends State<UsuarioScreen> {
     }
   }
 
-  // Método para re-autenticar al usuario
   Future<void> _reauthenticateUser(User user) async {
-    // Pedir al usuario su contraseña
     TextEditingController _passwordController = TextEditingController();
-    
-    // Mostrar un dialogo para que el usuario ingrese su contraseña
     String password = '';
     await showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
           title: Text('Re-autenticación'),
-          content: TextField(
-            controller: _passwordController,
-            obscureText: true,
-            decoration: InputDecoration(labelText: 'Contraseña actual'),
+          content: Padding(
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.of(context).viewInsets.bottom,
+            ),
+            child: TextField(
+              controller: _passwordController,
+              obscureText: true,
+              decoration: InputDecoration(labelText: 'Contraseña actual'),
+            ),
           ),
           actions: [
             TextButton(
@@ -132,7 +127,6 @@ class _UsuarioScreenState extends State<UsuarioScreen> {
       },
     );
 
-    // Re-autenticar con la contraseña proporcionada
     try {
       AuthCredential credential = EmailAuthProvider.credential(
         email: user.email!,
@@ -144,52 +138,72 @@ class _UsuarioScreenState extends State<UsuarioScreen> {
     }
   }
 
-  // Método para mostrar modal de edición de un dato
   void _showEditModal(TextEditingController controller, String title, Function() onSave) {
-    showDialog(
+    showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.black,
       builder: (context) {
-        return AlertDialog(
-          title: Text(title, style: TextStyle(color: Colors.yellow)),
-          backgroundColor: Colors.black,
-          content: TextFormField(
-            controller: controller,
-            decoration: InputDecoration(
-              labelStyle: TextStyle(color: Colors.yellow),
-              filled: true,
-              fillColor: Colors.white24,
-            ),
-            style: TextStyle(color: Colors.white),
+        return Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+            left: 16,
+            right: 16,
+            top: 16,
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text('Cancelar', style: TextStyle(color: Colors.yellow)),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                onSave();
-                Navigator.pop(context);
-              },
-              child: Text('Actualizar', style: TextStyle(color: Colors.black)),
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.yellow),
-            ),
-          ],
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: TextStyle(color: Colors.yellow, fontSize: 20, fontWeight: FontWeight.bold),
+              ),
+              SizedBox(height: 16),
+              TextFormField(
+                controller: controller,
+                decoration: InputDecoration(
+                  labelStyle: TextStyle(color: Colors.yellow),
+                  filled: true,
+                  fillColor: Colors.white24,
+                  border: OutlineInputBorder(),
+                ),
+                style: TextStyle(color: Colors.white),
+                autofocus: true,
+              ),
+              SizedBox(height: 16),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: Text('Cancelar', style: TextStyle(color: Colors.yellow)),
+                  ),
+                  SizedBox(width: 8),
+                  ElevatedButton(
+                    onPressed: () {
+                      onSave();
+                      Navigator.pop(context);
+                    },
+                    child: Text('Actualizar', style: TextStyle(color: Colors.black)),
+                    style: ElevatedButton.styleFrom(backgroundColor: Colors.yellow),
+                  ),
+                ],
+              ),
+              SizedBox(height: 8),
+            ],
+          ),
         );
       },
     );
   }
 
-  // Método para mostrar una alerta de confirmación antes de desactivar la cuenta
   void _showDeactivationAlert() {
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: Text(
-            'Desactivar cuenta',
-            style: TextStyle(color: Colors.yellow),
-          ),
+          title: Text('Desactivar cuenta', style: TextStyle(color: Colors.yellow)),
           content: Text(
             '¿Estás seguro de que deseas desactivar tu cuenta? Esta acción no puede deshacerse.',
             style: TextStyle(color: Colors.white),
@@ -198,24 +212,18 @@ class _UsuarioScreenState extends State<UsuarioScreen> {
           actions: [
             TextButton(
               onPressed: () {
-                Navigator.pop(context); // Cerrar la alerta
+                Navigator.pop(context);
               },
-              child: Text(
-                'Cancelar',
-                style: TextStyle(color: Colors.yellow),
-              ),
+              child: Text('Cancelar', style: TextStyle(color: Colors.yellow)),
             ),
             ElevatedButton(
               onPressed: () {
-                Navigator.pop(context); // Cerrar la alerta
-                _deactivateAccount(); // Desactivar cuenta
+                Navigator.pop(context);
+                _deactivateAccount();
               },
-              child: Text(
-                'Desactivar',
-                style: TextStyle(color: Colors.black),
-              ),
+              child: Text('Desactivar', style: TextStyle(color: Colors.black)),
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.yellow,
+                backgroundColor: Colors.redAccent,
                 padding: EdgeInsets.symmetric(vertical: 15, horizontal: 20),
               ),
             ),
@@ -256,15 +264,12 @@ class _UsuarioScreenState extends State<UsuarioScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                // Foto de perfil
                 CircleAvatar(
                   radius: 60,
                   backgroundImage: NetworkImage(FirebaseAuth.instance.currentUser?.photoURL ?? ''),
                   backgroundColor: Colors.grey[300],
                 ),
                 SizedBox(height: 20),
-
-                // FILAS CON DATOS E ICONOS
                 _buildDataRow('Nombre', _nombre, Icons.edit, () {
                   _showEditModal(_nombreController, 'Editar Nombre', () {
                     _updateUserData();
@@ -275,19 +280,17 @@ class _UsuarioScreenState extends State<UsuarioScreen> {
                     _updateUserData();
                   });
                 }),
-                _buildDataRow('Correo', _correo, Icons.email, () {}), // Sin edición
+                _buildDataRow('Correo', _correo, Icons.email, () {}),
                 _buildDataRow('Contraseña', '********', Icons.lock, () {
                   _showEditModal(_passwordController, 'Editar Contraseña', () {
                     _newPassword = _passwordController.text;
                     _updateUserData();
                   });
                 }),
-
-                // BOTÓN PARA DESACTIVAR CUENTA
                 SizedBox(height: 20),
                 Center(
                   child: ElevatedButton.icon(
-                    onPressed: _showDeactivationAlert, // Mostrar alerta de desactivación
+                    onPressed: _showDeactivationAlert,
                     icon: Icon(Icons.delete, color: Colors.white),
                     label: Text('Desactivar cuenta', style: TextStyle(color: Colors.white)),
                     style: ElevatedButton.styleFrom(
@@ -307,7 +310,6 @@ class _UsuarioScreenState extends State<UsuarioScreen> {
     );
   }
 
-  // Método para construir cada fila con datos e ícono de edición
   Widget _buildDataRow(String label, String value, IconData icon, VoidCallback onTap) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 12.0),
